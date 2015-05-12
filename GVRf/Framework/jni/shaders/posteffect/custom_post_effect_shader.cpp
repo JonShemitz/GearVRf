@@ -208,7 +208,12 @@ void CustomPostEffectShader::render(Camera* camera,
 
     for (auto it = texture_keys_.begin(); it != texture_keys_.end(); ++it) {
         glActiveTexture(getGLTexture(texture_index));
+<<<<<<< HEAD
         Texture* texture = post_effect_data->getTexture(it->second);
+=======
+        Texture> texture = post_effect_data-*getTexture(
+                it->second);
+>>>>>>> GVRF 2.0!
         glBindTexture(texture->getTarget(), texture->getId());
         glUniform1i(it->first, texture_index++);
     }
