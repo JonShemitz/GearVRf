@@ -30,6 +30,11 @@
 #include "objects/hybrid_object.h"
 #include "objects/textures/texture.h"
 
+// Some standard key names
+#define MAIN_TEXTURE "main_texture"
+#define COLOR "color"
+#define OPACITY "opacity"
+
 namespace gvr {
 class Color;
 

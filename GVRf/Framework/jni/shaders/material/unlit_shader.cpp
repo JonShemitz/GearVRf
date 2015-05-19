@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 /***************************************************************************
  * Renders a texture without light.
  ***************************************************************************/
@@ -25,40 +24,42 @@
 #include "objects/mesh.h"
 #include "objects/components/render_data.h"
 #include "objects/textures/texture.h"
+#include "shaders/gl_names.h"
 #include "util/gvr_gl.h"
 
 namespace gvr {
-static const char VERTEX_SHADER[] = "attribute vec4 a_position;\n"
-        "attribute vec4 a_tex_coord;\n"
-        "uniform mat4 u_mvp;\n"
-        "varying vec2 v_tex_coord;\n"
-        "void main() {\n"
-        "  v_tex_coord = a_tex_coord.xy;\n"
-        "  gl_Position = u_mvp * a_position;\n"
-        "}\n";
+static const char VERTEX_SHADER[] = //
+        "attribute vec4 "A_POSITION";\n"
+                "attribute vec4 "A_TEX_COORD";\n"
+                "uniform mat4 "U_MVP";\n"
+                "varying vec2 "V_TEX_COORD";\n"
+                "void main() {\n"
+                "  "V_TEX_COORD" = "A_TEX_COORD".xy;\n"
+                "  gl_Position = "U_MVP" * "A_POSITION";\n"
+                "}\n";
 
-static const char FRAGMENT_SHADER[] =
+static const char FRAGMENT_SHADER[] = //
         "precision highp float;\n"
-                "uniform sampler2D u_texture;\n"
-                "uniform vec3 u_color;\n"
-                "uniform float u_opacity;\n"
-                "varying vec2 v_tex_coord;\n"
+                "uniform sampler2D "U_TEXTURE";\n"
+                "uniform vec3 "U_COLOR";\n"
+                "uniform float "U_OPACITY";\n"
+                "varying vec2 "V_TEX_COORD";\n"
                 "void main()\n"
                 "{\n"
-                "  vec4 color = texture2D(u_texture, v_tex_coord);\n"
-                "  gl_FragColor = vec4(color.r * u_color.r * u_opacity, color.g * u_color.g * u_opacity, color.b * u_color.b * u_opacity, color.a * u_opacity);\n"
+                "  vec4 color = texture2D("U_TEXTURE", "V_TEX_COORD");\n"
+                "  gl_FragColor = vec4(color.r * "U_COLOR".r * "U_OPACITY", color.g * "U_COLOR".g * "U_OPACITY", color.b * "U_COLOR".b * "U_OPACITY", color.a * "U_OPACITY");\n"
                 "}\n";
 
 UnlitShader::UnlitShader() :
         program_(0), a_position_(0), a_tex_coord_(0), u_mvp_(0), u_texture_(0), u_color_(
                 0), u_opacity_(0) {
     program_ = new GLProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    a_position_ = glGetAttribLocation(program_->id(), "a_position");
-    a_tex_coord_ = glGetAttribLocation(program_->id(), "a_tex_coord");
-    u_mvp_ = glGetUniformLocation(program_->id(), "u_mvp");
-    u_texture_ = glGetUniformLocation(program_->id(), "u_texture");
-    u_color_ = glGetUniformLocation(program_->id(), "u_color");
-    u_opacity_ = glGetUniformLocation(program_->id(), "u_opacity");
+    a_position_ = glGetAttribLocation(program_->id(), A_POSITION);
+    a_tex_coord_ = glGetAttribLocation(program_->id(), A_TEX_COORD);
+    u_mvp_ = glGetUniformLocation(program_->id(), U_MVP);
+    u_texture_ = glGetUniformLocation(program_->id(), U_TEXTURE);
+    u_color_ = glGetUniformLocation(program_->id(), U_COLOR);
+    u_opacity_ = glGetUniformLocation(program_->id(), U_OPACITY);
 }
 
 UnlitShader::~UnlitShader() {
@@ -74,9 +75,9 @@ void UnlitShader::recycle() {
 
 void UnlitShader::render(const glm::mat4& mvp_matrix, RenderData* render_data) {
     Mesh* mesh = render_data->mesh();
-    Texture* texture = render_data->material()->getTexture("main_texture");
-    glm::vec3 color = render_data->material()->getVec3("color");
-    float opacity = render_data->material()->getFloat("opacity");
+    Texture* texture = render_data->material()->getTexture(MAIN_TEXTURE);
+    glm::vec3 color = render_data->material()->getVec3(COLOR);
+    float opacity = render_data->material()->getFloat(OPACITY);
 
     if (texture->getTarget() != GL_TEXTURE_2D) {
         std::string error = "UnlitShader::render : texture with wrong target";
@@ -96,14 +97,15 @@ void UnlitShader::render(const glm::mat4& mvp_matrix, RenderData* render_data) {
     glUseProgram(program_->id());
 
     glUniformMatrix4fv(u_mvp_, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture (GL_TEXTURE0);
     glBindTexture(texture->getTarget(), texture->getId());
     glUniform1i(u_texture_, 0);
     glUniform3f(u_color_, color.r, color.g, color.b);
     glUniform1f(u_opacity_, opacity);
 
     glBindVertexArray(mesh->getVAOId());
-    glDrawElements(GL_TRIANGLES, mesh->triangles().size(), GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, mesh->triangles().size(), GL_UNSIGNED_SHORT,
+            0);
     glBindVertexArray(0);
 #else
     glUseProgram(program_->id());

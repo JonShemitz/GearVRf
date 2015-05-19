@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 /***************************************************************************
  * GL program for rendering a object with an error.
  ***************************************************************************/
@@ -24,28 +23,31 @@
 #include "objects/material.h"
 #include "objects/mesh.h"
 #include "objects/components/render_data.h"
+#include "shaders/gl_names.h"
 #include "util/gvr_gl.h"
 
 namespace gvr {
-static const char VERTEX_SHADER[] = "attribute vec4 a_position;\n"
-        "uniform mat4 u_mvp;\n"
+static const char VERTEX_SHADER[] = //
+        "attribute vec4 "A_POSITION";\n"
+        "uniform mat4 "U_MVP";\n"
         "void main() {\n"
-        "  gl_Position = u_mvp * a_position;\n"
+        "  gl_Position = "U_MVP" * "A_POSITION";\n"
         "}\n";
 
-static const char FRAGMENT_SHADER[] = "precision highp float;\n"
-        "uniform vec4 u_color;\n"
+static const char FRAGMENT_SHADER[] = //
+        "precision highp float;\n"
+                "uniform vec4 "U_COLOR";\n"
         "void main()\n"
         "{\n"
-        "  gl_FragColor = u_color;\n"
+        "  gl_FragColor = "U_COLOR";\n"
         "}\n";
 
 ErrorShader::ErrorShader() :
         program_(0), a_position_(0), u_mvp_(0), u_color_(0) {
     program_ = new GLProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    a_position_ = glGetAttribLocation(program_->id(), "a_position");
-    u_mvp_ = glGetUniformLocation(program_->id(), "u_mvp");
-    u_color_ = glGetUniformLocation(program_->id(), "u_color");
+    a_position_ = glGetAttribLocation(program_->id(), A_POSITION);
+    u_mvp_ = glGetUniformLocation(program_->id(), U_MVP);
+    u_color_ = glGetUniformLocation(program_->id(), U_COLOR);
 }
 
 ErrorShader::~ErrorShader() {
@@ -76,7 +78,8 @@ void ErrorShader::render(const glm::mat4& mvp_matrix, RenderData* render_data) {
     glUniform4f(u_color_, r, g, b, a);
 
     glBindVertexArray(mesh->getVAOId());
-    glDrawElements(GL_TRIANGLES, mesh->triangles().size(), GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, mesh->triangles().size(), GL_UNSIGNED_SHORT,
+            0);
     glBindVertexArray(0);
 #else
     glUseProgram(program_->id());

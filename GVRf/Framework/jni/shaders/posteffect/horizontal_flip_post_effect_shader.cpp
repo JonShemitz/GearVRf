@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 /***************************************************************************
  * Horizontally flips the scene
  ***************************************************************************/
@@ -23,30 +22,33 @@
 #include "gl/gl_program.h"
 #include "objects/post_effect_data.h"
 #include "objects/textures/render_texture.h"
+#include "shaders/gl_names.h"
 #include "util/gvr_gl.h"
 
 namespace gvr {
-static const char VERTEX_SHADER[] = "attribute vec4 a_position;\n"
-        "attribute vec4 a_tex_coord;\n"
-        "varying vec2 v_tex_coord;\n"
+static const char VERTEX_SHADER[] = //
+        "attribute vec4 "A_POSITION";\n"
+        "attribute vec4 "A_TEX_COORD";\n"
+        "varying vec2 "V_TEX_COORD";\n"
         "void main() {\n"
-        "  v_tex_coord = vec2(a_tex_coord.x, 1.0 - a_tex_coord.y);\n"
-        "  gl_Position = a_position;\n"
+        "  "V_TEX_COORD" = vec2("A_TEX_COORD".x, 1.0 - "A_TEX_COORD".y);\n"
+        "  gl_Position = "A_POSITION";\n"
         "}\n";
 
-static const char FRAGMENT_SHADER[] = "precision highp float;\n"
-        "uniform sampler2D u_texture;\n"
-        "varying vec2 v_tex_coord;\n"
+static const char FRAGMENT_SHADER[] = //
+        "precision highp float;\n"
+                "uniform sampler2D "U_TEXTURE";\n"
+        "varying vec2 "V_TEX_COORD";\n"
         "void main() {\n"
-        "  gl_FragColor = texture2D(u_texture, v_tex_coord);\n"
+        "  gl_FragColor = texture2D("U_TEXTURE", "V_TEX_COORD");\n"
         "}\n";
 
 HorizontalFlipPostEffectShader::HorizontalFlipPostEffectShader() :
         program_(0), a_position_(0), a_tex_coord_(0), u_texture_(0) {
     program_ = new GLProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    a_position_ = glGetAttribLocation(program_->id(), "a_position");
-    a_tex_coord_ = glGetAttribLocation(program_->id(), "a_tex_coord");
-    u_texture_ = glGetUniformLocation(program_->id(), "u_texture");
+    a_position_ = glGetAttribLocation(program_->id(), A_POSITION);
+    a_tex_coord_ = glGetAttribLocation(program_->id(), A_TEX_COORD);
+    u_texture_ = glGetUniformLocation(program_->id(), U_TEXTURE);
     vaoID_ = 0;
 }
 
@@ -55,8 +57,8 @@ HorizontalFlipPostEffectShader::~HorizontalFlipPostEffectShader() {
         recycle();
     }
     if (vaoID_ != 0) {
-    	glDeleteVertexArrays(1, &vaoID_);
-    	vaoID_ = 0;
+        glDeleteVertexArrays(1, &vaoID_);
+        vaoID_ = 0;
     }
 }
 
@@ -65,39 +67,39 @@ void HorizontalFlipPostEffectShader::recycle() {
     program_ = 0;
 }
 
-void HorizontalFlipPostEffectShader::render(
-        RenderTexture* render_texture,
-        PostEffectData* post_effect_data,
-        std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& tex_coords,
+void HorizontalFlipPostEffectShader::render(RenderTexture* render_texture,
+        PostEffectData* post_effect_data, std::vector<glm::vec3>& vertices,
+        std::vector<glm::vec2>& tex_coords,
         std::vector<unsigned short>& triangles) {
     glUseProgram(program_->id());
 
 #if _GVRF_USE_GLES3_
     GLuint tmpID;
 
-    if(vaoID_ == 0)
-    {
+    if (vaoID_ == 0) {
         glGenVertexArrays(1, &vaoID_);
         glBindVertexArray(vaoID_);
 
         glGenBuffers(1, &tmpID);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmpID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short)*triangles.size(), &triangles[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                sizeof(unsigned short) * triangles.size(), &triangles[0],
+                GL_STATIC_DRAW);
 
-        if (vertices.size())
-        {
+        if (vertices.size()) {
             glGenBuffers(1, &tmpID);
             glBindBuffer(GL_ARRAY_BUFFER, tmpID);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(),
+                    &vertices[0], GL_STATIC_DRAW);
             glEnableVertexAttribArray(a_position_);
             glVertexAttribPointer(a_position_, 3, GL_FLOAT, 0, 0, 0);
         }
 
-        if (tex_coords.size())
-        {
+        if (tex_coords.size()) {
             glGenBuffers(1, &tmpID);
             glBindBuffer(GL_ARRAY_BUFFER, tmpID);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*tex_coords.size(), &tex_coords[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * tex_coords.size(),
+                    &tex_coords[0], GL_STATIC_DRAW);
             glEnableVertexAttribArray(a_tex_coord_);
             glVertexAttribPointer(a_tex_coord_, 2, GL_FLOAT, 0, 0, 0);
         }
